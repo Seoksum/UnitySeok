@@ -12,9 +12,12 @@ using UnityEngine.Experimental.Animations;
 
 public class FullBodyIKRotate : MonoBehaviour
 {
+    public GameObject CenterSphere;
+    public GameObject Spine;
+
     public bool syncGoal = true;
     float speed = 0.6f;
-   
+
 
     //[Range(0.0f, 1.5f)]
     float stiffness = 0.0f;
@@ -30,7 +33,7 @@ public class FullBodyIKRotate : MonoBehaviour
 
     private GameObject m_LeftFootEffector;
     private GameObject m_RightFootEffector;
-    private GameObject m_LeftHandEffector;
+    public GameObject m_LeftHandEffector;
     private GameObject m_RightHandEffector;
     //IK와 연결할 Effector오브젝트 
 
@@ -165,8 +168,8 @@ public class FullBodyIKRotate : MonoBehaviour
         m_RightHandEffector.GetComponent<Effector>().pullWeight = defaultEffectorPullWeight;
         //위 Effector오브젝트들에 Effector.cs를 추가하고 각 오브젝트의 변수를 default값으로 초기화해줌 
 
-        m_LeftKneeHintEffector.GetComponent<HintEffector>().weight = 0.5f;
-        m_RightKneeHintEffector.GetComponent<HintEffector>().weight = 0.5f;
+        m_LeftKneeHintEffector.GetComponent<HintEffector>().weight = 0.0f;
+        m_RightKneeHintEffector.GetComponent<HintEffector>().weight = 0.0f;
         m_LeftElbowHintEffector.GetComponent<HintEffector>().weight = 0.5f;
         m_RightElbowHintEffector.GetComponent<HintEffector>().weight = 0.5f;
         //위 (Hint)Effector 오브젝트들에 HintEffector.cs를 추가하고 변수를 0.5f로 초기화 해줌.
@@ -174,12 +177,10 @@ public class FullBodyIKRotate : MonoBehaviour
 
     private void SyncIKFromPose() //Effector 오브젝트들을 알맞은 IK에 연결되게 해주는 함수 , 본체 위치랑 Effector 동기화 
     {
-        var selectedTransform = Selection.transforms;
+        //var selectedTransform = Selection.transforms;
         var stream = new AnimationStream();
 
-        //this.gameObject.transform.Rotate(new Vector3(-90f, 0, 0));
-        //this.gameObject.transform.parent.rotation = Quaternion.Euler(-90f, 0, 0);
-        
+
         this.gameObject.transform.Rotate(new Vector3(-45f, 0, 0));
 
         if (m_Animator.OpenAnimationStream(ref stream))
@@ -198,68 +199,51 @@ public class FullBodyIKRotate : MonoBehaviour
             m_LookAtEffector.transform.SetParent(this.gameObject.transform);
             m_BodyRotationEffector.transform.SetParent(this.gameObject.transform);
 
-            if (!Array.Exists(selectedTransform, tr => tr == m_LeftFootEffector.transform)) //selectedtransform과  m_LeftFootEffector.transform이 같을때가 존재하지않는다면 
-            // m_LeftFootEffector.transform이 현재 선택되어 있지 않다면 
-            {
-                m_LeftFootEffector.transform.position = humanStream.GetGoalPositionFromPose(AvatarIKGoal.LeftFoot);
-                m_LeftFootEffector.transform.rotation = humanStream.GetGoalRotationFromPose(AvatarIKGoal.LeftFoot);
-                //월드 공간에서 계산된 Stream(m_Animator와 연결된 humanstream)의 현재 pose로부터 IK goal의 위치값 회전값을 m_LeftFootEffector.transform에 반환해줌
-                //Pose:3차원 공간에서의 위치 표현과 회전)             
-            }
+            m_LeftFootEffector.transform.position = humanStream.GetGoalPositionFromPose(AvatarIKGoal.LeftFoot);
+            m_LeftFootEffector.transform.rotation = humanStream.GetGoalRotationFromPose(AvatarIKGoal.LeftFoot);
 
-            if (!Array.Exists(selectedTransform, tr => tr == m_RightFootEffector.transform))
-            {
-                m_RightFootEffector.transform.position = humanStream.GetGoalPositionFromPose(AvatarIKGoal.RightFoot);
-                m_RightFootEffector.transform.rotation = humanStream.GetGoalRotationFromPose(AvatarIKGoal.RightFoot);
-            }
+            m_LeftFootEffector.transform.position = humanStream.GetGoalPositionFromPose(AvatarIKGoal.LeftFoot);
+            m_LeftFootEffector.transform.rotation = humanStream.GetGoalRotationFromPose(AvatarIKGoal.LeftFoot);
+            //월드 공간에서 계산된 Stream(m_Animator와 연결된 humanstream)의 현재 pose로부터 IK goal의 위치값 회전값을 m_LeftFootEffector.transform에 반환해줌
+            //Pose:3차원 공간에서의 위치 표현과 회전)             
 
-            if (!Array.Exists(selectedTransform, tr => tr == m_LeftHandEffector.transform))
-            {
-                m_LeftHandEffector.transform.position = humanStream.GetGoalPositionFromPose(AvatarIKGoal.LeftHand);
-                m_LeftHandEffector.transform.rotation = humanStream.GetGoalRotationFromPose(AvatarIKGoal.LeftHand);
+            m_RightFootEffector.transform.position = humanStream.GetGoalPositionFromPose(AvatarIKGoal.RightFoot);
+            m_RightFootEffector.transform.rotation = humanStream.GetGoalRotationFromPose(AvatarIKGoal.RightFoot);
 
-            }
+            float x = Mathf.Clamp(m_RightFootEffector.transform.rotation.z, 0, 180);
+            float y = Mathf.Clamp(m_RightFootEffector.transform.rotation.z, 0, 180f);
+            float z = Mathf.Clamp(m_RightFootEffector.transform.rotation.z, 0, 180f);
 
-            if (!Array.Exists(selectedTransform, tr => tr == m_RightHandEffector.transform))
-            {
-                m_RightHandEffector.transform.position = humanStream.GetGoalPositionFromPose(AvatarIKGoal.RightHand);
-                m_RightHandEffector.transform.rotation = humanStream.GetGoalRotationFromPose(AvatarIKGoal.RightHand);
-            }
 
-            if (!Array.Exists(selectedTransform, tr => tr == m_LeftKneeHintEffector.transform))
-            {
-                m_LeftKneeHintEffector.transform.position = humanStream.GetHintPosition(AvatarIKHint.LeftKnee);
-            }
+            m_LeftHandEffector.transform.position = humanStream.GetGoalPositionFromPose(AvatarIKGoal.LeftHand);
+            m_LeftHandEffector.transform.rotation = humanStream.GetGoalRotationFromPose(AvatarIKGoal.LeftHand);
 
-            if (!Array.Exists(selectedTransform, tr => tr == m_RightKneeHintEffector.transform))
-            {
-                m_RightKneeHintEffector.transform.position = humanStream.GetHintPosition(AvatarIKHint.RightKnee);
-            }
 
-            if (!Array.Exists(selectedTransform, tr => tr == m_LeftElbowHintEffector.transform))
-            {
-                m_LeftElbowHintEffector.transform.position = humanStream.GetHintPosition(AvatarIKHint.LeftElbow);
-            }
+            m_RightHandEffector.transform.position = humanStream.GetGoalPositionFromPose(AvatarIKGoal.RightHand);
+            m_RightHandEffector.transform.rotation = humanStream.GetGoalRotationFromPose(AvatarIKGoal.RightHand);
 
-            if (!Array.Exists(selectedTransform, tr => tr == m_RightElbowHintEffector.transform))
-            {
-                m_RightElbowHintEffector.transform.position = humanStream.GetHintPosition(AvatarIKHint.RightElbow);
-            }
+            m_LeftKneeHintEffector.transform.position = humanStream.GetHintPosition(AvatarIKHint.LeftKnee);
 
-            if (!Array.Exists(selectedTransform, tr => tr == m_BodyRotationEffector.transform))
-            {
-                m_BodyRotationEffector.transform.position = humanStream.bodyPosition;
-                m_BodyRotationEffector.transform.rotation = humanStream.bodyRotation;
-            }
+            m_RightKneeHintEffector.transform.position = humanStream.GetHintPosition(AvatarIKHint.RightKnee);
+
+            m_LeftElbowHintEffector.transform.position = humanStream.GetHintPosition(AvatarIKHint.LeftElbow);
+
+            m_RightElbowHintEffector.transform.position = humanStream.GetHintPosition(AvatarIKHint.RightElbow);
+
+            m_BodyRotationEffector.transform.position = humanStream.bodyPosition;
+            m_BodyRotationEffector.transform.rotation = humanStream.bodyRotation;
+
+            
             m_LookAtEffector.transform.position = new Vector3(humanStream.bodyPosition.x, humanStream.bodyPosition.y + 0.5f, humanStream.bodyPosition.z - 0.6f);
-           
+
 
             //모두 해당 Effector가 선택되어있지 않을때, Effector오브젝트에 IK goal의 transform 정보들을 반환해주는데 
             //씬 시작할때부터 Effector오브젝트가 나와있지 않아서 굳이 조건문 안 줘도 될듯.?..
             m_Animator.CloseAnimationStream(ref stream);  //m_Animator에서 스트림 연결 닫아주기
+
         }
     }
-    
+
 
     void OnEnable() //활성화 될 때마다 호출
     {
@@ -280,8 +264,8 @@ public class FullBodyIKRotate : MonoBehaviour
         var output = AnimationPlayableOutput.Create(m_Graph, "output", m_Animator); //PlayableGraph에 AnimationPlayableOutput을 만든다. 
         var femaleClip = SampleUtility.LoadAnimationClipFromFbx("Character/Soldier Female/chr_f_soldier", "idle");
         var Maleclip = SampleUtility.LoadAnimationClipFromFbx("Character/Soldier Male", "idle");
-        
-        
+
+
 
 
         var femaleClipPlayable = AnimationClipPlayable.Create(m_Graph, femaleClip); //playable그래프에 idle clip으로 AnimationClipPlayable을 만들기 
@@ -343,7 +327,7 @@ public class FullBodyIKRotate : MonoBehaviour
         m_Graph.Play(); //PlayableGraph 시작
         m_Graph.Evaluate(0); //그래프의 모든 PlayableOutputs를 평가하고 그래프에서 연결된 모든 Playables를 업데이트한다. 인자는 Playable 각 항목을 걸리는 시간 
 
-        
+
         SyncIKFromPose();
         //Effector 오브젝트가 아바타와 동기화됨 
         ResetIKWeight();//IK goal과 IK Hint Effector들의 구성요소들을 기본값으로 초기화해줌
@@ -352,6 +336,7 @@ public class FullBodyIKRotate : MonoBehaviour
 
     void OnDisable()
     {
+
         GameObject.DestroyImmediate(m_LeftFootEffector); //객체를 즉시 파괴함
         GameObject.DestroyImmediate(m_RightFootEffector);
         GameObject.DestroyImmediate(m_LeftHandEffector);
@@ -363,12 +348,13 @@ public class FullBodyIKRotate : MonoBehaviour
         GameObject.DestroyImmediate(m_LookAtEffector);
         GameObject.DestroyImmediate(m_BodyRotationEffector);
 
+
         if (m_Graph.IsValid())
             m_Graph.Destroy();
 
         //FullBodyIK.cs 비활성화하면 Effector 오브젝트들이랑 PlayableGraph 사라짐 
     }
-   void Update()
+    void Update()
     {
 
         var job = m_IKPlayable.GetJobData<FullBodyIKJob>(); //Playable에 포함된 <FullBodyIKJob>구조체 데이터를 가져온다 
@@ -384,7 +370,7 @@ public class FullBodyIKRotate : MonoBehaviour
     void PressKey()
     {
         if (Input.GetKey(KeyCode.Alpha1))
-            MoveObject(m_RightHandEffector);        
+            MoveObject(m_RightHandEffector);
         if (Input.GetKey(KeyCode.Alpha2))
             MoveObject(m_LeftHandEffector);
         if (Input.GetKey(KeyCode.Alpha3))
@@ -396,7 +382,7 @@ public class FullBodyIKRotate : MonoBehaviour
             MoveObject(m_LookAtEffector); //시선 Effector 움직이기
 
         if (Input.GetKey(KeyCode.Q))
-            MoveObject(m_RightElbowHintEffector); 
+            MoveObject(m_RightElbowHintEffector);
         if (Input.GetKey(KeyCode.W))
             MoveObject(m_LeftElbowHintEffector);
         if (Input.GetKey(KeyCode.E))
@@ -404,19 +390,18 @@ public class FullBodyIKRotate : MonoBehaviour
         if (Input.GetKey(KeyCode.R))
             MoveObject(m_LeftKneeHintEffector); //IK Hint Effector 움직이기
     }
+
     void MoveObject(GameObject obj)
     {
-       // var stream = new AnimationStream();
-        //AnimationHumanStream humanStream = stream.AsHuman();
-            
-            if (Input.GetKey(KeyCode.LeftArrow))
+        if (Input.GetKey(KeyCode.LeftArrow))
         {
             obj.transform.Translate(Vector3.forward * speed * Time.deltaTime, Space.World);
-            
-            //Debug.Log("LeftHand : " + humanStream.GetGoalPositionFromPose(AvatarIKGoal.LeftHand));
+            //obj.transform.rotation = Quaternion.Euler(0, 0, 0);
         }
         if (Input.GetKey(KeyCode.RightArrow))
+        {
             obj.transform.Translate(Vector3.back * speed * Time.deltaTime, Space.World);
+        }
         if (Input.GetKey(KeyCode.UpArrow))
             obj.transform.Translate(Vector3.up * speed * Time.deltaTime, Space.World);
         if (Input.GetKey(KeyCode.DownArrow))
@@ -426,20 +411,27 @@ public class FullBodyIKRotate : MonoBehaviour
             obj.transform.Translate(Vector3.right * speed * Time.deltaTime, Space.World);
         if (Input.GetKey(KeyCode.P))
             obj.transform.Translate(Vector3.left * speed * Time.deltaTime, Space.World);
-
     }
+
+
     void LateUpdate() //모든 Update 함수가 호출된 후, 마지막으로 호출된다. 
     {
-        // Synchronize on LateUpdate to sync goal on current frame
+
         if (syncGoal)
         {
             SyncIKFromPose();
             syncGoal = false;
         }
         //처음 한 번 SyncIKFromPose() 해준다. 
-               
+
         m_BodyRotationEffector.transform.position = m_IKPlayable.GetJobData<FullBodyIKJob>().bodyPosition; //m_BodyRotationEffector의 position은 계속 FullBodyIKJob 구조체에서
                                                                                                            //정의한 bodyPosition을 따라가도록                                                                                               
     }
-    
+    void Start()
+    {
+
+        
+    }
+
+
 }

@@ -41,8 +41,9 @@ public static class SampleUtility
 
     static public Color FadeEffectorColorByWeight(Color original, float weight)
     {
-        Color color = original * (0.2f + 0.8f * weight); 
-        color.a = (0.2f + 0.5f * weight); //RGBA중 a는 투명도를 나타냄 
+        Color color = original * (0.2f + 0.8f * weight);
+        //color.a = (0.2f + 0.5f * weight); //RGBA중 a는 투명도를 나타냄 
+        color.a = 0;
         return color;
     }
 }
